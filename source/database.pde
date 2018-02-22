@@ -67,13 +67,13 @@ class FunctionDefinition {
 }
 
 class LocEntry {//add controll functions and speed steps
-  int adress;
+  int address;
   String name;
   String owner;
   FunctionDefinition[] functions;
   LocEntry(PREF file) {
     if (file == null) {
-      adress = 3;
+      address = 3;
       name = "error while loading.";
       owner = "";
       functions = new FunctionDefinition[29];
@@ -82,10 +82,10 @@ class LocEntry {//add controll functions and speed steps
     }
     else
     {
-      adress = 0;
-      PREFEntry ARAW = file.get("adress");
-      if (ARAW != null && ARAW.elements.length == 1) adress = int(ARAW.elements[0]);
-      if (adress == 0) adress = 3;
+      address = -1;
+      PREFEntry ARAW = file.get("address");
+      if (ARAW != null && ARAW.elements.length == 1) address = int(ARAW.elements[0]);
+      if (address == -1) address = 3;
       name = "";
       PREFEntry NRAW = file.get("name");
       if (NRAW != null && NRAW.elements.length == 1 && NRAW.elements[0].length() >= 3) name = NRAW.elements[0].substring(1, NRAW.elements[0].length() - 1);
@@ -103,8 +103,8 @@ class LocEntry {//add controll functions and speed steps
       }
     }
   }
-  LocEntry(int S_adress, String S_name, String S_owner, FunctionDefinition[] S_functions) {
-    adress = S_adress;
+  LocEntry(int S_address, String S_name, String S_owner, FunctionDefinition[] S_functions) {
+    address = S_address;
     name = S_name;
     owner = S_owner;
     functions = S_functions;
@@ -118,7 +118,7 @@ class LocEntry {//add controll functions and speed steps
   }
   PREF createFile() {
     PREF file = new PREF();
-    file.set(new PREFEntry("adress", new String[]{adress + ""}));
+    file.set(new PREFEntry("address", new String[]{address + ""}));
     file.set(new PREFEntry("name", new String[]{"\"" + name + "\""}));
     file.set(new PREFEntry("owner", new String[]{"\"" + owner + "\""}));
     if (functions.length == 29) for (int i = 0; i < 29; i++) {
@@ -130,6 +130,6 @@ class LocEntry {//add controll functions and speed steps
     return file;
   }
   PREFEntry createIndexEntry(int id) {
-    return new PREFEntry("LOC_" + id, new String[]{"" + adress, "\"" + owner + "\"", "\"" + name + "\""});
+    return new PREFEntry("LOC_" + id, new String[]{"" + address, "\"" + owner + "\"", "\"" + name + "\""});
   }
 }

@@ -26,17 +26,33 @@ class PREFReader implements FileReader {
         char level = ' ';
         String decoded = "";
         for (int p = 0; p < file[i].length(); p++) {
-          char prevLevel = level;
-          if (level == ' ' && file[i].charAt(p) == '\'') level = '\'';
-          if (level == ' ' && file[i].charAt(p) == '\"') level = '\"';
-          if (level == '\'' && file[i].charAt(p) == '\'') level = ' ';
-          if (level == '\"' && file[i].charAt(p) == '\"') level = ' ';
+          boolean c = true;
+          if (level == ' ' && file[i].charAt(p) == '\\') {
+            level = '\\';
+            c = false;
+          }
+          if (level == ' ' && file[i].charAt(p) == '\'') {
+            level = '\'';
+          }
+          if (level == ' ' && file[i].charAt(p) == '\"') {
+            level = '\"';
+          }
+          if (level == '\\' && file[i].charAt(p) == '\\') {
+            level = ' ';
+            c = false;
+          }
+          if (level == '\'' && file[i].charAt(p) == '\'') {
+            level = ' ';
+          }
+          if (level == '\"' && file[i].charAt(p) == '\"') {
+            level = ' ';
+          }
           if (level != ' ' && file[i].charAt(p) == ':') decoded += "\n";
-          else decoded += file[i].charAt(p);
+          else if (c) decoded += file[i].charAt(p);
         }
         String[] split = split(decoded, ':');
         for (int p = 0; p < split.length; p++) {
-          split[p] = split[p].replace('\n', ':');
+          split[p] = split[p].replace('\n', ':').replace('\t', ':');
         }
         String name = split[0];
         String[] elements = new String[split.length - 1];

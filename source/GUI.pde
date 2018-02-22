@@ -831,18 +831,38 @@ class TextureButton {
   int y;
   int width;
   int height;
-  String text;
   boolean enabled;
   boolean wasPressed;
   boolean dEdge;
   TextureButtonStyle style;
   AdvRunnable onPress;
-  TextureButton(int S_x, int S_y, int S_width, int S_height, String S_text, boolean S_dEdge, TextureButtonStyle S_style, AdvRunnable S_onPress) {
+  TextureButton(int S_x, int S_y, int S_width, int S_height, boolean S_dEdge, TextureButtonStyle S_style) {
     x = S_x;
     y = S_y;
     width = S_width;
     height = S_height;
-    text = S_text;
+    enabled = true;
+    style = S_style;
+    onPress = null;
+    wasPressed = false;
+    dEdge = S_dEdge;
+  }
+  TextureButton(int S_x, int S_y, int S_width, int S_height, boolean S_dEdge, TextureButtonStyle S_style, Runnable S_onPress) {
+    x = S_x;
+    y = S_y;
+    width = S_width;
+    height = S_height;
+    enabled = true;
+    style = S_style;
+    onPress = advRunnable(S_onPress);
+    wasPressed = false;
+    dEdge = S_dEdge;
+  }
+  TextureButton(int S_x, int S_y, int S_width, int S_height, boolean S_dEdge, TextureButtonStyle S_style, AdvRunnable S_onPress) {
+    x = S_x;
+    y = S_y;
+    width = S_width;
+    height = S_height;
     enabled = true;
     style = S_style;
     onPress = S_onPress;
@@ -870,6 +890,27 @@ class TextureButton {
       image(style.disabled, x, y, width, height);
     }
   }
+  void render(PGraphics p, int mouseX, int mouseY, boolean mousePressed) {
+    if (enabled) {
+      if (pressed(mouseX, mouseY, mousePressed)) {
+        p.image(style.pressed, x, y, width, height);
+        if (onPress != null && !wasPressed) onPress.run(this);
+      }
+      else if (mouseOver(mouseX, mouseY)) {
+        p.image(style.hover, x, y, width, height);
+      }
+      else
+      {
+        p.image(style.normal, x, y, width, height);
+      }
+      if (!pressed(mouseX, mouseY, mousePressed) && wasPressed && dEdge && onPress != null) onPress.run(this);
+      wasPressed = pressed(mouseX, mouseY, mousePressed);
+    }
+    else
+    {
+      p.image(style.disabled, x, y, width, height);
+    }
+  }
   void setEnabled(boolean S_enabled) {
     enabled = S_enabled;
   }
@@ -880,6 +921,12 @@ class TextureButton {
     return mousePressed && enabled && mouseOver();
   }
   boolean mouseOver() {
+    return mouseX >= x && mouseX <= x + width - 1 && mouseY >= y && mouseY <= y + height - 1;
+  }
+  boolean pressed(int mouseX, int mouseY, boolean mousePressed) {
+    return mousePressed && enabled && mouseOver(mouseX, mouseY);
+  }
+  boolean mouseOver(int mouseX, int mouseY) {
     return mouseX >= x && mouseX <= x + width - 1 && mouseY >= y && mouseY <= y + height - 1;
   }
 }

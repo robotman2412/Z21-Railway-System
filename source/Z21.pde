@@ -28,7 +28,7 @@ TODO list:
 
 
 UDP com;
-String Z21_ADRESS = "192.168.178.111";
+String Z21_ADDRESS = "192.168.178.111";
 String CONNECT_STATUS = STAT_NO_CONNECTION;
 Style GUIStyle;
 Button Z21_connect;
@@ -65,10 +65,10 @@ LocEntry[] locomotives;
 Style locSelectStyle;
 Button[] locSelectControlButtons;
 Button[] locSelectEditButtons;
-Text[] locSelectAdresses;
+Text[] locSelectAddresses;
 Text[] locSelectNames;
 Text[] locSelectOwners;
-Text locSelectAdress;
+Text locSelectAddress;
 Text locSelectName;
 Text locSelectOwner;
 Button addLoc;
@@ -78,18 +78,16 @@ PImage speed_high;
 PImage direction;
 PImage icon;
 ControlScreen controler;
-boolean log = false;
+boolean log = true;
 DataRequest[] dataRequests;
-final int maxWarnings = 255;
-int numWarnings = 0;
-static String[] logf = new String[1];
+static String[] logf = {""};
 final String logfname = "log_" + day() + "-" + month() + "-" + year() + "_" + hour() + "-" + minute() + ".log";
 
 void setup() {
   size(750, 500, P2D);
   ((SmoothCanvas) getSurface().getNative()).getFrame().setMinimumSize(new Dimension(760, 510));
   surface.setResizable(true);
-  surface.setTitle("Z21 Railway System | PRE-ALPHA build 28");
+  surface.setTitle("Z21 Railway System | ALPHA build 1");
   icon = loadImage("icon.png");
   if (icon != null) surface.setIcon(icon);
   dataRequests = new DataRequest[0];
@@ -126,7 +124,7 @@ void setup() {
     }
   });
   Connection = new Text(160, 20, "No connection.");
-  SerialNum = new Text(260, 20, "Serial adress: ------");
+  SerialNum = new Text(260, 20, "Serial address: ------");
   XBusVersion = new Text(400, 20, "X-Bus version: ----");
   Firmware = new Text(530, 20, "Firmware: ----");
   Operation = new Text(160, 50, "Operation: ------");
@@ -146,7 +144,7 @@ void setup() {
       backup();
     }
   }, 1000, 60000);
-  IP = new TextInput(0, 5, 120, 19, false, false, "IP adress");
+  IP = new TextInput(0, 5, 120, 19, false, false, "IP address");
   locLibScroll = new ScrollBar(true, 0, 65, 100, 10);
   PREF lastSession = PREF.load("lastSession.pref");
   if (lastSession != null) {
@@ -163,9 +161,9 @@ void setup() {
   }
   decodeLocIndex();
   locSelectStyle = new Style(255, 127, 1);
-  locSelectAdress = new Text(5, 80, "Adress");
-  locSelectName = new Text(55, 80, "Name");
-  locSelectOwner = new Text(200, 80, "Owner");
+  locSelectAddress = new Text(5, 80, "Address");
+  locSelectName = new Text(62, 80, "Name");
+  locSelectOwner = new Text(207, 80, "Owner");
   addLoc = new Button(0, 90, 69, 19, "add loc...", false, new Runnable() {
     public void run() {
       openMenu(new AddLocomotive());
@@ -174,6 +172,10 @@ void setup() {
   speed_low = loadImage("speed_low.png");
   speed_high = loadImage("speed_high.png");
   direction = loadImage("direction.png");
+  STYLE_DIRECTION_LEFT = new TextureButtonStyle(direction.get(0, 0, 20, 20), direction.get(0, 20, 20, 20), direction.get(0, 40, 20, 20), direction.get(40, 20, 20, 20));
+  STYLE_DIRECTION_LEFT_ACTIVE = new TextureButtonStyle(direction.get(40, 0, 20, 20), direction.get(40, 0, 20, 20), direction.get(40, 0, 20, 20), direction.get(40, 20, 20, 20));
+  STYLE_DIRECTION_RIGHT = new TextureButtonStyle(direction.get(20, 0, 20, 20), direction.get(20, 20, 20, 20), direction.get(20, 40, 20, 20), direction.get(60, 20, 20, 20));
+  STYLE_DIRECTION_RIGHT_ACTIVE = new TextureButtonStyle(direction.get(60, 0, 20, 20), direction.get(60, 0, 20, 20), direction.get(60, 0, 20, 20), direction.get(60, 20, 20, 20));
   controler = new ControlScreen();
   runSketch(new String[] {"ControlScreen"}, controler);
 }
@@ -211,23 +213,15 @@ void mousePressed() {
   else menu.mousePress();
 }
 
-void warn(String message) {
-  numWarnings ++;
-  serr("WARNING: " + message);
-  if (numWarnings > maxWarnings) {
-    serr("FATAL: too many warnings!");
-    super.exit();
-  }
-}
-
-void serr(String message) {
-  message += '\n';
+public static void error(String message) {
+  message += "\n";
   System.err.print(message);
   String[] split = split(message, '\n');
-  if (logf[logf.length - 1] == null) logf[logf.length - 1] = "[" + tmmins() + "][System.err] ";
+  if (logf[logf.length - 1] == "") logf[logf.length - 1] = "[" + tmmins() + "][System.err] ";
   int lind = logf.length - 1;
-  logf = expand(logf, logf.length + split.length);
-  for (int i = 0; i < split.length; i++) if (split[i] != null && !split[i].equals(null)) {
+  logf = expand(logf, logf.length + split.length - 1);
+  logf[logf.length - 1] = "";
+  for (int i = 0; i < split.length; i++) if (!split[i].equals("")) {
     if (i > 0) logf[lind + i] = "                       " + split[i];
     else logf[lind] += split[i];
   }
@@ -236,10 +230,11 @@ void serr(String message) {
 public static void print(String message) {
   System.out.print(message);
   String[] split = split(message, '\n');
-  if (logf[logf.length - 1] == null) logf[logf.length - 1] = "[" + tmmins() + "][System.out] ";
+  if (logf[logf.length - 1] == "") logf[logf.length - 1] = "[" + tmmins() + "][System.out] ";
   int lind = logf.length - 1;
-  logf = expand(logf, logf.length + split.length);
-  for (int i = 0; i < split.length; i++) if (split[i] != null && !split[i].equals(null)) {
+  logf = expand(logf, logf.length + split.length - 1);
+  logf[logf.length - 1] = "";
+  for (int i = 0; i < split.length; i++) if (!split[i].equals("")) {
     if (i > 0) logf[lind + i] = "                       " + split[i];
     else logf[lind] += split[i];
   }
@@ -261,26 +256,43 @@ public static String tmmins() {
 
 void doSpeed(int x, int y, int speed, PGraphics p) {
   p.image(speed_low, x, y);
-  PImage overlay = speed_high.get(0, speed_low.height - speed, 25, speed * (speed_low.height / 128));
-  p.image(overlay, x + (speed_low.width - speed_high.width), y + (speed_low.height - speed));
+  if (speed == 127) p.image(speed_high, x + (speed_low.width - speed_high.width), y);
+  else
+  {
+    PImage overlay = speed_high.get(0, speed_low.height - speed * (speed_low.height / 128), 25, speed * (speed_low.height / 128));
+    p.image(overlay, x + (speed_low.width - speed_high.width), y + (speed_low.height - speed * (speed_low.height / 128)));
+  }
+}
+
+int getSpeed(int x, int y, int mouseX, int mouseY) {
+  if (mouseX >= x + (speed_low.width - speed_high.width) && mouseX <= x + speed_low.width) {
+    if (mouseY >= y && mouseY <= y + speed_low.height) {
+      int div = (speed_low.height / 128);
+      return 127 - (mouseY - y) / div;
+    }
+    else if (mouseY >= y - 10 && mouseY <= y) return 127;
+    else if (mouseY >= y + speed_low.height && mouseY <= y + speed_low.height + 10) return 0;
+    else return -1;
+  }
+  else return -1;
 }
 
 void doLocSelect() {//add the rest of the GUI bits
-  locSelectAdress.display();
+  locSelectAddress.display();
   locSelectName.display();
   locSelectOwner.display();
   line(0, 89, width - 79, 89);
-  line(50, 60, 50, 89 + locomotives.length * 30);
-  line(195, 60, 195, 89 + locomotives.length * 30);
+  line(57, 60, 57, 89 + locomotives.length * 30);
+  line(202, 60, 202, 89 + locomotives.length * 30);
   line(width - 214, 90, width - 214, 89 + locomotives.length * 30);
   for (int i = 0; i < locomotives.length; i++) {
     locSelectEditButtons[i].enabled = !inMenu;
-    locSelectControlButtons[i].enabled = CONNECT_STATUS.equals(STAT_CONNECTED) && !inMenu;
+    locSelectControlButtons[i].enabled = CONNECT_STATUS.equals(STAT_CONNECTED) && !locked && !inMenu;
     locSelectEditButtons[i].x = width - 134;
     locSelectControlButtons[i].x = width - 209;
     locSelectEditButtons[i].render();
     locSelectControlButtons[i].render();
-    locSelectAdresses[i].display();
+    locSelectAddresses[i].display();
     locSelectNames[i].display();
     locSelectOwners[i].display();
     locSelectStyle._set();
@@ -305,7 +317,7 @@ void decodeLocIndex() {
   }
   locSelectEditButtons = new Button[locomotives.length];
   locSelectControlButtons = new Button[locomotives.length];
-  locSelectAdresses = new Text[locomotives.length];
+  locSelectAddresses = new Text[locomotives.length];
   locSelectNames = new Text[locomotives.length];
   locSelectOwners = new Text[locomotives.length];
   for (int i = 0; i < locomotives.length; i++) {
@@ -325,14 +337,14 @@ void decodeLocIndex() {
         openMenu(new EditLocomotive(index, finFile));
       }
     });
-    locSelectControlButtons[i] = new Button(0, 95 + i * 30, 69, 19, "controll", false, new Runnable() {
+    locSelectControlButtons[i] = new Button(0, 95 + i * 30, 69, 19, "control", false, new Runnable() {
       public void run() {
         control(loc);
       }
     });
-    locSelectAdresses[i] = new Text(5, 110 + i * 30, locomotives[i].adress + "");
-    locSelectNames[i] = new Text(55, 110 + i * 30, locomotives[i].name);
-    locSelectOwners[i] = new Text(200, 110 + i * 30, locomotives[i].owner);
+    locSelectAddresses[i] = new Text(5, 110 + i * 30, locomotives[i].address + "");
+    locSelectNames[i] = new Text(62, 110 + i * 30, locomotives[i].name);
+    locSelectOwners[i] = new Text(207, 110 + i * 30, locomotives[i].owner);
   }
 }
 
@@ -360,10 +372,11 @@ void doGUI() {
   if (inLocLib) {
     line(width - 79, 60, width - 79, height - 1);
     doLocSelect();
+    addLoc.render();
   }
   else
   {
-    rect(width - 79, 59, 80, 55);
+    rect(width - 79, 59, 80, 30);
     new TextStyle(0, 12, CENTER)._text("This function is not done yet.", width / 2, height / 2);
   }
   Z21_connect.enabled = CONNECT_STATUS.equals(STAT_NO_CONNECTION) || CONNECT_STATUS.equals(STAT_CONNECT_FAILED) && !inMenu;
@@ -378,7 +391,6 @@ void doGUI() {
   IP.display();
   Z21_gostop.render();
   Z21_stopAll.render();
-  addLoc.render();
   Connection.display();
   SerialNum.display();
   XBusVersion.display();
@@ -403,8 +415,6 @@ void doGUI() {
 void checkSize() {
   sketchWidth = width;
   sketchHeight = height;
-  //if (width < 750) surface.setSize(750, height);
-  //if (height < 500) surface.setSize(width, 500);
   Z21_stopAll.x = width - 74;
   Locked.x = width / 2 - 165;
   Locked.y = height / 2 - 10;
@@ -443,8 +453,8 @@ void checkRailwayStatus() {
 }
 
 void connect() {
-  if (!IP.text.equals("")) Z21_ADRESS = IP.text;
-  else Z21_ADRESS = "192.168.178.111";
+  if (!IP.text.equals("")) Z21_ADDRESS = IP.text;
+  else Z21_ADDRESS = "192.168.178.111";
   CONNECT_STATUS = STAT_CONNECTING;
   com = new UDP(this, 21105);
   com.listen(true);
@@ -466,7 +476,7 @@ void disconnect() {
     CONNECT_STATUS = STAT_NO_CONNECTION;
     com.close();
     com = null;
-    SerialNum.text = "Serial adress: ------";
+    SerialNum.text = "Serial address: ------";
     XBusVersion.text = "X-Bus version: ----";
     Firmware.text = "Firmware: ----";
     Operation.text = "operation: ------";
@@ -517,32 +527,32 @@ void locrailway() {
 
 boolean send(byte[] head, byte[] data) {
   if (com == null) {
-    println("we are not connected! message cannot be sent!");
+    error("we are not connected! message cannot be sent!");
     CONNECT_STATUS = STAT_NO_CONNECTION;
     return false;
   }
   if (CONNECT_STATUS.equals(STAT_NO_CONNECTION) || CONNECT_STATUS.equals(STAT_CONNECT_FAILED)) {
-    println("we are not connected! message cannot be sent!");
+    error("we are not connected! message cannot be sent!");
     return false;
   }
   if (head.length == 1) {
-    serr("head is 1 byte too short! bad practice, but no problem.");
+    error("head is 1 byte too short! bad practice, but no problem.");
     head = new byte[]{head[0], 0x00};
   }
   if (head.length == 0) {
-    warn("head does not exist! message cannot be sent!");
+    error("head does not exist! message cannot be sent!");
     return false;
   }
   if (head.length > 2) {
     String n = "";
     if (head.length > 3) n = "s";
-    warn("head is " + (head.length - 2) + " byte" + n + " too long! message cannot be sent!");
+    error("head is " + (head.length - 2) + " byte" + n + " too long! message cannot be sent!");
     return false;
   }
   if (data.length > 251) {
     String n = "";
     if (data.length > 252) n = "s";
-    warn("data is " + (data.length - 251) + " byte" + n + " too long! (out of max. 256) message cannot be sent!");
+    error("data is " + (data.length - 251) + " byte" + n + " too long! (out of max. 256) message cannot be sent!");
   }
   String s = "";
   byte[] ndat = new byte[data.length + 4];
@@ -557,7 +567,7 @@ boolean send(byte[] head, byte[] data) {
     if (i > 0) s += " ";
     s += "0x" + hex(ndat[i]);
   }
-  if (com.send(ndat, Z21_ADRESS, 21105) && log) println("sent packet to " + Z21_ADRESS + ":21105:\n" + s);
+  if (com.send(ndat, Z21_ADDRESS, 21105) && log) println("sent packet to " + Z21_ADDRESS + ":21105:\n" + s);
   return true;
 }
 
@@ -585,15 +595,14 @@ void receive(byte[] data, String host, int port) {
   process(data);
 }
 
-void process(byte[] data) {
-  if (data.length >= 4) {
-    byte[] len = new byte[]{data[0], data[1]};
-    byte[] head = new byte[]{data[2], data[3]};
-    byte[] ndat = new byte[data.length - 4];
-    for (int i = 0; i < data.length - 4; i++) {
-      ndat[i] = data[i + 4];
+void process(byte[] raw) {
+  if (raw.length >= 4) {
+    byte[] len = new byte[]{raw[0], raw[1]};
+    byte[] head = new byte[]{raw[2], raw[3]};
+    byte[] data = new byte[raw.length - 4];
+    for (int i = 0; i < raw.length - 4; i++) {
+      data[i] = raw[i + 4];
     }
-    data = ndat;
     if (PROCESS_GET_SERIAL_NUM(len, head, data)) return;//2.1
     if (PROCESS_GET_XBUS_VER(len, head, data)) return;//2.3
     if (PROCESS_STATUS_BROADCAST(len, head, data)) return;//2.7 > 2.10
@@ -608,15 +617,15 @@ void process(byte[] data) {
     if (PROCESS_GET_TURNOUT_MODE(len, head, data)) return;//3.3
     if (PROCESS_LOC_INFO(len, head, data)) return;//4.4
     String text = "";
-    for (int i = 0; i < data.length; i++) {
+    for (int i = 0; i < raw.length; i++) {
       if (i > 0) text += " ";
-      text += "0x" + hex(data[i]);
+      text += "0x" + hex(raw[i]);
     }
-    serr("WARNING: Z21 reply is of an unknown type! packet:\n" + text);
+    error("WARNING: Z21 reply is of an unknown type! packet:\n" + text);
   }
   else
   {
-    serr("WARNING: message is incorrectly formatted!");
+    error("WARNING: message is incorrectly formatted!");
   }
 }
 

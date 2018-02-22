@@ -19,7 +19,7 @@ boolean PROCESS_GET_SERIAL_NUM(byte[] len, byte[] head, byte[] data) {
   if (len[0] == 0x08 && len[1] == 0x00 && head[0] == 0x10 && head[1] == 0x00 && data.length == 4) {
     long serial = ByteBuffer.wrap(new byte[]{data[0], data[1], data[2], data[3], 0x00, 0x00, 0x00, 0x00}).order(ByteOrder.LITTLE_ENDIAN).getLong();
     if (log) println("serial number is: " + serial);
-    SerialNum.text = "Serial adress: " + serial;
+    SerialNum.text = "Serial address: " + serial;
     return true;
   }
   else return false;
@@ -254,21 +254,21 @@ boolean PROCESS_GET_CODE(byte[] len, byte[] head, byte[] data) {
 }
 
 //3.1
-void Z21_GET_LOC_MODE(int adress) {
-  send(new byte[]{0x60, 0x00}, new byte[]{byte((adress & 0x0000ff00) >> 8), byte(adress & 0x000000ff)});
+void Z21_GET_LOC_MODE(int address) {
+  send(new byte[]{0x60, 0x00}, new byte[]{byte((address & 0x0000ff00) >> 8), byte(address & 0x000000ff)});
 }
 
 //3.1
 boolean PROCESS_GET_LOC_MODE(byte[] len, byte[] head, byte[] data) {
   if (len[0] == 0x07 && len[1] == 0x00 && head[0] == 0x60 && head[1] == 0x00 && data.length == 3) {
-    int adress = (data[0] << 8) | data[1];
+    int address = (data[0] << 8) | data[1];
     if (data[2] > 0) {
-      if (log) println("locomotive " + adress + " is in MM mode.");
+      if (log) println("locomotive " + address + " is in MM mode.");
       return true;
     }
     else
     {
-      if (log) println("locomotive " + adress + " is in DCC mode.");
+      if (log) println("locomotive " + address + " is in DCC mode.");
       return false;
     }
   }
@@ -276,27 +276,27 @@ boolean PROCESS_GET_LOC_MODE(byte[] len, byte[] head, byte[] data) {
 }
 
 //3.2
-void Z21_SET_LOC_MODE(int adress, boolean mode) {
-  if (mode) send(new byte[]{0x61, 0x00}, new byte[]{byte((adress & 0x0000ff00) >> 8), byte(adress & 0x000000ff), 0x01});
-  else send(new byte[]{0x61, 0x00}, new byte[]{byte((adress & 0x0000ff00) >> 8), byte(adress & 0x000000ff), 0x00});
+void Z21_SET_LOC_MODE(int address, boolean mode) {
+  if (mode) send(new byte[]{0x61, 0x00}, new byte[]{byte((address & 0x0000ff00) >> 8), byte(address & 0x000000ff), 0x01});
+  else send(new byte[]{0x61, 0x00}, new byte[]{byte((address & 0x0000ff00) >> 8), byte(address & 0x000000ff), 0x00});
 }
 
 //3.3
-void Z21_GET_TURNOUT_MODE(int adress) {
-  send(new byte[]{0x60, 0x00}, new byte[]{byte((adress & 0x0000ff00) >> 8), byte(adress & 0x000000ff)});
+void Z21_GET_TURNOUT_MODE(int address) {
+  send(new byte[]{0x60, 0x00}, new byte[]{byte((address & 0x0000ff00) >> 8), byte(address & 0x000000ff)});
 }
 
 //3.3
 boolean PROCESS_GET_TURNOUT_MODE(byte[] len, byte[] head, byte[] data) {
   if (len[0] == 0x07 && len[1] == 0x00 && head[0] == 0x60 && head[1] == 0x00 && data.length == 3) {
-    int adress = (data[0] << 8) | data[1];
+    int address = (data[0] << 8) | data[1];
     if (data[2] > 0) {
-      if (log) println("locomotive " + adress + " is in MM mode.");
+      if (log) println("locomotive " + address + " is in MM mode.");
       return true;
     }
     else
     {
-      if (log) println("locomotive " + adress + " is in DCC mode.");
+      if (log) println("locomotive " + address + " is in DCC mode.");
       return false;
     }
   }
@@ -304,24 +304,24 @@ boolean PROCESS_GET_TURNOUT_MODE(byte[] len, byte[] head, byte[] data) {
 }
 
 //3.4
-void Z21_SET_TURNOUT_MODE(int adress, boolean mode) {
-  if (mode) send(new byte[]{0x61, 0x00}, new byte[]{byte((adress & 0x0000ff00) >> 8), byte(adress & 0x000000ff), 0x01});
-  else send(new byte[]{0x61, 0x00}, new byte[]{byte((adress & 0x0000ff00) >> 8), byte(adress & 0x000000ff), 0x00});
+void Z21_SET_TURNOUT_MODE(int address, boolean mode) {
+  if (mode) send(new byte[]{0x61, 0x00}, new byte[]{byte((address & 0x0000ff00) >> 8), byte(address & 0x000000ff), 0x01});
+  else send(new byte[]{0x61, 0x00}, new byte[]{byte((address & 0x0000ff00) >> 8), byte(address & 0x000000ff), 0x00});
 }
 
 //4.1
-void Z21_GET_LOC_INFO(int adress) {
-  byte[] message = new byte[]{byte(0xe3), byte(0xf0), byte(((adress & 0x00003f00) >> 8) | 0xc0), byte(adress & 0x000000ff), 0x00};
+void Z21_GET_LOC_INFO(int address) {
+  byte[] message = new byte[]{byte(0xe3), byte(0xf0), byte(((address & 0x00003f00) >> 8) | 0xc0), byte(address & 0x000000ff), 0x00};
   message[4] = byte(message[0] ^ message[1] ^ message[2] ^ message[3]);
   send(new byte[]{0x40, 0x00}, message);
 }
 
 //4.1
-void Z21_GET_LOC_INFO(int adress, final AdvRunnable done) {
-  byte[] message = new byte[]{byte(0xe3), byte(0xf0), byte(((adress >> 8) & 0x000000ff) | 0xc0), byte(adress & 0x000000ff), 0x00};
+void Z21_GET_LOC_INFO(int address, final AdvRunnable done) {
+  byte[] message = new byte[]{byte(0xe3), byte(0xf0), byte(((address >> 8) & 0x000000ff) | 0xc0), byte(address & 0x000000ff), 0x00};
   message[4] = byte(message[0] ^ message[1] ^ message[2] ^ message[3]);
   send(new byte[]{0x40, 0x00}, message);
-  addDataRequest(new DataRequest("Z21_GET_LOC_INFO", "GET_LOC_INFO", adress) {
+  addDataRequest(new DataRequest("Z21_GET_LOC_INFO", "GET_LOC_INFO", address) {
     public Object complete(Object lst) {
       done.run(lst);
       return null;
@@ -330,24 +330,24 @@ void Z21_GET_LOC_INFO(int adress, final AdvRunnable done) {
 }
 
 //4.2
-void Z21_SET_LOC_DRIVE(int adress, boolean direction, int speed) {
-  byte[] message = new byte[]{byte(0xe4), 0x13, byte(((adress & 0x00003f00) >> 8) | 0xc0), byte(adress & 0x000000ff), byte(byte(speed & 0x0000007f) | byte(direction)), 0x00};
+void Z21_SET_LOC_DRIVE(int address, boolean direction, int speed) {
+  byte[] message = new byte[]{byte(0xe4), 0x13, byte(((address & 0x00003f00) >> 8) | 0xc0), byte(address & 0x000000ff), byte(byte(speed & 0x0000007f) | byte(byte(direction) << 7)), 0x00};
   message[5] = byte(message[0] ^ message[1] ^ message[2] ^ message[3] ^ message[4]);
   send(new byte[]{0x40, 0x00}, message);
 }
 
 //4.3
-void Z21_SET_LOC_FUNCTION(int adress, int function, int mode) {
-  byte[] message = new byte[]{byte(0xe4), byte(0xf8), byte(((adress & 0x00003f00) >> 8) | 0xc0), byte(adress & 0x000000ff), byte((byte(mode & 0x00000003) << 6) | byte(function & 0x000000cf)), 0x00};
+void Z21_SET_LOC_FUNCTION(int address, int function, int mode) {
+  byte[] message = new byte[]{byte(0xe4), byte(0xf8), byte(((address & 0x00003f00) >> 8) | 0xc0), byte(address & 0x000000ff), byte((byte(mode & 0x00000003) << 6) | byte(function & 0x000000cf)), 0x00};
   message[5] = byte(message[0] ^ message[1] ^ message[2] ^ message[3] ^ message[4]);
   send(new byte[]{0x40, 0x00}, message);
-  if (log) println("set function " + function + " to " + mode + " for adress " + adress);
+  if (log) println("set function " + function + " to " + mode + " for address " + address);
 }
 
 //4.4
 boolean PROCESS_LOC_INFO(byte[] len, byte[] head, byte[] data) {
   if (len[0] >= 0x0e && len[1] == 0x00 && head[0] == 0x40 && head[1] == 0x00 && data.length == len[0] - 4 && data[0] == byte(0xef)) {
-    final int adress = ((int(data[1]) & 0x3F) << 8) + int(data[2]);
+    final int address = ((int(data[1]) & 0x3F) << 8) + int(data[2]);
     boolean[] function = new boolean[29];
     boolean[] DB4 = bit(data[5]);
     boolean[] DB5 = bit(data[6]);
@@ -373,8 +373,8 @@ boolean PROCESS_LOC_INFO(byte[] len, byte[] head, byte[] data) {
     parseDataRequests(new AdvRunnable() {
       public Object run(Object req) {
         DataRequest request = (DataRequest) req;
-        if (request.requestType.equals("GET_LOC_INFO") && (int) request.requestData == adress) {
-          request.complete(new LocStatus(adress, occupied, speedSteps, direction, speed, doubleHead, smartSearch, functions));
+        if (request.requestType.equals("GET_LOC_INFO") && (int) request.requestData == address) {
+          request.complete(new LocStatus(address, occupied, speedSteps, direction, speed, doubleHead, smartSearch, functions));
           return true;
         }
         else return false;

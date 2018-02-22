@@ -32,7 +32,7 @@ AdvRunnable advRunnable(final Runnable S_simple) {
 }
 
 class LocStatus {
-  int adress;
+  int address;
   boolean occupied;
   byte speedSteps;
   boolean direction;
@@ -40,8 +40,8 @@ class LocStatus {
   boolean doubleHead;
   boolean smartSearch;
   boolean[] function;
-  LocStatus(int S_adress, boolean S_occupied, byte S_speedSteps, boolean S_direction, byte S_speed, boolean S_doubleHead, boolean S_smartSearch, boolean[] S_function) {
-    adress = S_adress;
+  LocStatus(int S_address, boolean S_occupied, byte S_speedSteps, boolean S_direction, byte S_speed, boolean S_doubleHead, boolean S_smartSearch, boolean[] S_function) {
+    address = S_address;
     occupied = S_occupied;
     speedSteps = S_speedSteps;
     direction = S_direction;
@@ -96,23 +96,43 @@ boolean[] bit(byte in) {
 
 public class ControlScreen extends PApplet {
   Button[] functions;
+  TextureButton reverse;
+  TextureButton forward;
   int speed;
-  int speedSteps;
   boolean direction;
   
   public void settings() {
-    size(250, 380);
+    size(250, 400);
   }
   
   public void setup() {
     setVisible(false);
     if (icon != null) surface.setIcon(icon);
+    reverse = new TextureButton(160, 360, 20, 20, false, STYLE_DIRECTION_LEFT, new Runnable() {
+      public void run() {
+        setDirection(false);
+      }
+    });
+    forward = new TextureButton(180, 360, 20, 20, false, STYLE_DIRECTION_RIGHT, new Runnable() {
+      public void run() {
+        setDirection(true);
+      }
+    });
   }
   
   public void draw() {
     background(255);
     if (functions != null) for (int i = 0; i < functions.length; i++) if (functions[i] != null) functions[i].render(this, mouseX, mouseY, mousePressed);
-    doSpeed(160, 5, speed, g);
+    doSpeed(164, 5, speed, g);
+    forward.render(g, mouseX, mouseY, mousePressed);
+    reverse.render(g, mouseX, mouseY, mousePressed);
+    if (mousePressed) {
+      int s = getSpeed(164, 5, mouseX, mouseY);
+      if (s != -1 && s != speed) {
+        speed = s;
+        Z21_SET_LOC_DRIVE(controling.address, direction, speed);
+      }
+    }
     if (!CONNECT_STATUS.equals(STAT_CONNECTED)) exit();
   }
   
@@ -123,10 +143,12 @@ public class ControlScreen extends PApplet {
       makeGUI();
       speed = 0;
       surface.setTitle("Control " + controling.name);
-      Z21_GET_LOC_INFO(controling.adress, new AdvRunnable() {
+      Z21_SET_LOC_MODE(controling.address, false);
+      Z21_GET_LOC_INFO(controling.address, new AdvRunnable() {
         public Object run(Object locst) {
           LocStatus status = (LocStatus) locst;
           speed = status.speed;
+          setDirection(status.direction);
           return null;
         }
       });
@@ -134,20 +156,34 @@ public class ControlScreen extends PApplet {
     else noLoop();
   }
   
+  public void setDirection(boolean dir) {
+    direction = dir;
+    if (direction) {
+      reverse.style = STYLE_DIRECTION_LEFT;
+      forward.style = STYLE_DIRECTION_RIGHT_ACTIVE;
+    }
+    else
+    {
+      reverse.style = STYLE_DIRECTION_LEFT_ACTIVE;
+      forward.style = STYLE_DIRECTION_RIGHT;
+    }
+    Z21_SET_LOC_DRIVE(controling.address, direction, speed);
+  }
+  
   public void makeGUI() {
     functions = new Button[29];
-    final int adress = controling.adress;
+    final int address = controling.address;
     for (int i = 0; i < 15; i++) {
       final int index = i;
       final FunctionDefinition func = controling.functions[i];
       functions[i] = new Button(5, i * 25 + 5, 74, 20, "F" + i + ": " + func.name, !func.flip, new AdvRunnable() {
         public Object run(Object btn) {
           Button button = (Button) btn;
-          if (func.flip) Z21_SET_LOC_FUNCTION(adress, index, FLIP);
+          if (func.flip) Z21_SET_LOC_FUNCTION(address, index, FLIP);
           else
           {
-            if (!button.wasPressed) Z21_SET_LOC_FUNCTION(adress, index, ON);
-            if (button.wasPressed) Z21_SET_LOC_FUNCTION(adress, index, OFF);
+            if (!button.wasPressed) Z21_SET_LOC_FUNCTION(address, index, ON);
+            if (button.wasPressed) Z21_SET_LOC_FUNCTION(address, index, OFF);
           }
           return null;
         }
@@ -160,11 +196,11 @@ public class ControlScreen extends PApplet {
       functions[i] = new Button(85, (i - 15) * 25 + 5, 74, 20, "F" + i + ": " + func.name, !func.flip, new AdvRunnable() {
         public Object run(Object btn) {
           Button button = (Button) btn;
-          if (func.flip) Z21_SET_LOC_FUNCTION(adress, index, FLIP);
+          if (func.flip) Z21_SET_LOC_FUNCTION(address, index, FLIP);
           else
           {
-            if (!button.wasPressed) Z21_SET_LOC_FUNCTION(adress, index, ON);
-            if (button.wasPressed) Z21_SET_LOC_FUNCTION(adress, index, OFF);
+            if (!button.wasPressed) Z21_SET_LOC_FUNCTION(address, index, ON);
+            if (button.wasPressed) Z21_SET_LOC_FUNCTION(address, index, OFF);
           }
           return null;
         }
@@ -174,6 +210,8 @@ public class ControlScreen extends PApplet {
   }
   
   public void exit() {
-    stopControl();
+    if (key != ESC) {
+      stopControl();
+    }
   }
 }

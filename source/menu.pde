@@ -21,13 +21,13 @@ class AddLocomotive implements MenuScreen {
   Button cancel;
   Button add;
   Button functionDemo;
-  TextInput adress;
+  TextInput address;
   TextInput name;
   TextInput owner;
   TextInput functionName;
   Checkbox functionUsed;
   Checkbox functionToggle;
-  Text Adress;
+  Text Address;
   Text Name;
   Text Owner;
   Text Functions;
@@ -41,7 +41,7 @@ class AddLocomotive implements MenuScreen {
     cancel = new Button(0, 0, 49, 20, "CANCEL", false, new Runnable(){public void run(){exited=true;}});
     add = new Button(0, 0, 49, 20, "ADD", false, new Runnable(){public void run(){addLoc();}});
     functionDemo = new Button(0, 0, 74, 20, "", false, new Runnable(){public void run(){tryFunction();}});
-    adress = new TextInput(0, 0, 49, 20, false, true, "adress");
+    address = new TextInput(0, 0, 49, 20, false, true, "address");
     name = new TextInput(0, 0, 139, 20, false, false, "name");
     owner = new TextInput(0, 0, 190, 20, false, false, "owner");
     Owner = new Text(0, 0, "owner\'s full name:");
@@ -50,7 +50,7 @@ class AddLocomotive implements MenuScreen {
     functionName.cursorPos = 6;
     functionUsed = new Checkbox(0, 0, 20, 20);
     functionToggle = new Checkbox(0, 0, 20, 20);
-    Adress = new Text(0, 0, "Adress");
+    Address = new Text(0, 0, "Address");
     Name = new Text(0, 0, "Name:");
     Functions = new Text(0, 0, "Functions:");
     FunctionDemo = new Text(0, 0, "Try it:");
@@ -70,7 +70,7 @@ class AddLocomotive implements MenuScreen {
         functions[functionIndex].used = functionUsed.value;
         functions[functionIndex].name = functionName.text;
         functions[functionIndex].flip = functionToggle.value;
-        Z21_SET_LOC_FUNCTION(int(adress.text), functionIndex, OFF);
+        Z21_SET_LOC_FUNCTION(int(address.text), functionIndex, OFF);
       }
       public void post() {
         int functionIndex = func.selectedIndex + 1;
@@ -87,7 +87,7 @@ class AddLocomotive implements MenuScreen {
     rect(width / 2 - 200, height / 2 - 125, 400, 250);
     cancel.enabled = !func.open;
     add.enabled = !func.open;
-    adress.enabled = !func.open;
+    address.enabled = !func.open;
     name.enabled = !func.open;
     owner.enabled = !func.open;
     functionName.enabled = !func.open;
@@ -100,8 +100,8 @@ class AddLocomotive implements MenuScreen {
     add.render();
     functionDemo.render();
     FunctionDemo.display();
-    adress.display();
-    Adress.display();
+    address.display();
+    Address.display();
     name.display();
     Name.display();
     owner.display();
@@ -114,7 +114,7 @@ class AddLocomotive implements MenuScreen {
     func.render();
   }
   public void mousePress() {
-    adress.select();
+    address.select();
     name.select();
     owner.select();
     functionName.select();
@@ -123,25 +123,25 @@ class AddLocomotive implements MenuScreen {
     functionToggle.render();
   }
   public void keyPress() {
-    adress.render();
+    address.render();
     name.render();
     owner.render();
     functionName.render();
   }
   void tryFunction() {
-    if (functionToggle.value) Z21_SET_LOC_FUNCTION(int(adress.text), func.selectedIndex + 1, FLIP);
-    else if (functionDemo.pressed()) Z21_SET_LOC_FUNCTION(int(adress.text), func.selectedIndex + 1, ON);
-    else Z21_SET_LOC_FUNCTION(int(adress.text), func.selectedIndex + 1, OFF);
+    if (functionToggle.value) Z21_SET_LOC_FUNCTION(int(address.text), func.selectedIndex + 1, FLIP);
+    else if (functionDemo.pressed()) Z21_SET_LOC_FUNCTION(int(address.text), func.selectedIndex + 1, ON);
+    else Z21_SET_LOC_FUNCTION(int(address.text), func.selectedIndex + 1, OFF);
   }
   void calcPosition() {
     cancel.x = width / 2 - 195;
     cancel.y = height / 2 + 100;
     add.x = width / 2 + 145;
     add.y = height / 2 + 100;
-    adress.x = width / 2 - 195;
-    adress.y = height / 2 - 100;
-    Adress.x = width / 2 - 195;
-    Adress.y = height / 2 - 105;
+    address.x = width / 2 - 195;
+    address.y = height / 2 - 100;
+    Address.x = width / 2 - 195;
+    Address.y = height / 2 - 105;
     func.x = width / 2 - 170;
     func.y = height / 2 - 60;
     functionUsed.x = width / 2 - 195;
@@ -168,19 +168,19 @@ class AddLocomotive implements MenuScreen {
     Owner.y = height / 2 - 105;
   }
   void addLoc() {
-    int locAdress = int(adress.text);
-    String locName = name.text;
-    String locOwner = owner.text;
+    int locAddress = int(address.text);
+    String locName = name.text.replace("\"", "\\\"").replace("\'", "\\\'").replace(":", "\t");
+    String locOwner = owner.text.replace("\"", "\\\"").replace("\'", "\\\'").replace(":", "\t");
     int functionIndex = func.selectedIndex + 1;
     functions[functionIndex].used = functionUsed.value;
     functions[functionIndex].name = functionName.text;
     functions[functionIndex].flip = functionToggle.value;
-    Z21_SET_LOC_FUNCTION(locAdress, functionIndex, OFF);
+    Z21_SET_LOC_FUNCTION(locAddress, functionIndex, OFF);
     int locID = 0;
     PREFEntry num = locIndex.get("num");
     if (num != null && num.elements.length == 1) locID = int(num.elements[0]);
     locIndex.set(new PREFEntry("num", new String[]{(locID + 1) + ""}));
-    LocEntry loc = new LocEntry(locAdress, locName, locOwner, functions);
+    LocEntry loc = new LocEntry(locAddress, locName, locOwner, functions);
     PREF.save("data/locs/LOC_" + locID + ".pref", loc.createFile());
     locomotives = (LocEntry[]) expand(locomotives, locomotives.length + 1);
     locomotives[locomotives.length - 1] = loc;
@@ -206,30 +206,28 @@ class EditLocomotive extends AddLocomotive implements MenuScreen {
     super.init();
     add = new Button(0, 0, 49, 20, "SAVE", false, new Runnable(){public void run(){saveLoc();}});
     functions = locomotives[index].functions;
-    adress.text = locomotives[index].adress + "";
+    address.text = locomotives[index].address + "";
     name.text = locomotives[index].name;
     owner.text = locomotives[index].owner;
-    adress.cursorPos = adress.text.length();
+    address.cursorPos = address.text.length();
     name.cursorPos = name.text.length();
     owner.cursorPos = owner.text.length();
     func.onChange.post();
   }
   void saveLoc() {
-    int locAdress = int(adress.text);
-    String locName = name.text;
-    String locOwner = owner.text;
+    int locAddress = int(address.text);
+    String locName = name.text.replace("\"", "\\\"").replace("\'", "\\\'").replace(":", "\t");
+    String locOwner = owner.text.replace("\"", "\\\"").replace("\'", "\\\'").replace(":", "\t");
     int functionIndex = func.selectedIndex + 1;
     functions[functionIndex].used = functionUsed.value;
     functions[functionIndex].name = functionName.text;
     functions[functionIndex].flip = functionToggle.value;
-    Z21_SET_LOC_FUNCTION(locAdress, functionIndex, OFF);
-    println(locAdress);
-    LocEntry loc = new LocEntry(locAdress, locName, locOwner, functions);
+    Z21_SET_LOC_FUNCTION(locAddress, functionIndex, OFF);
+    LocEntry loc = new LocEntry(locAddress, locName, locOwner, functions);
     PREF.save(locFile, loc.createFile());
     locomotives[index] = loc;
     exited = true;
     decodeLocIndex();
     backup();
-    println(locAdress);
   }
 }
