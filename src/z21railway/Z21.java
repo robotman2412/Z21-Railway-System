@@ -109,11 +109,9 @@ public class Z21 extends PApplet {
 		dataRequests = new DataRequest[0];
 		guiStyle = new Style(255, 127, 1);
 		z21Connect = new Button(this, 5, 5, 69, 19, "connect", false, this::connect);
-		z21Disconnect = new Button(this, 80, 5, 69, 19, "disconnect", false, new Runnable() {
-			public void run() {
-				stopControl();
-				disconnect();
-			}
+		z21Disconnect = new Button(this, 80, 5, 69, 19, "disconnect", false, () -> {
+			stopControl();
+			disconnect();
 		});
 		locRailwayToggle = new Button(this, 5, 35, 79, 19, "railway", false, this::locrailway);
 		z21GoStopToggle = new Button(this, 90, 35, 59, 19, "go/stop", false, STYLE_BUTTON_STOP, this::gostop);
